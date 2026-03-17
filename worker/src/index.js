@@ -16,6 +16,10 @@ export default {
                 return await getProjects(env)
             if (url.pathname === '/projects' && request.method === 'POST')
                 return await createProject(request, env)
+            if (url.pathname.startsWith('/projects/') && request.method === 'PATCH')
+                return await updateProject(url.pathname.split('/')[2], request, env)
+            if (url.pathname.startsWith('/projects/') && request.method === 'DELETE')
+                return await deleteProject(url.pathname.split('/')[2], env)
 
             // tasks
             if (url.pathname === '/tasks' && request.method === 'GET')
@@ -44,6 +48,17 @@ async function createProject(request, env) {
     if (!body.name) return json({ error: 'name is required' }, 400)
     const res = await sb(env, 'POST', '/rest/v1/projects', body)
     return json(await res.json(), 201)
+}
+
+async function updateProject(id, request, env) {
+    const body = await request.json()
+    const res = await sb(env, 'PATCH', `/rest/v1/projects?id=eq.${id}`, body)
+    return json(await res.json())
+}
+
+async function deleteProject(id, env) {
+    await sb(env, 'DELETE', `/rest/v1/projects?id=eq.${id}`)
+    return new Response(null, { status: 204, headers: cors })
 }
 
 async function getTasks(url, env) {
